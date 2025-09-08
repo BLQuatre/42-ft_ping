@@ -1,0 +1,10 @@
+/ft_ping
+
+.vscode/
+objs/
+
+.tests/
+
+*.o
+*.a
+*.out

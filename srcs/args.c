@@ -26,7 +26,7 @@ static struct option long_options[] = {
 static t_ping_args default_args() {
 	t_ping_args args = {
 		.count = DEFAULT_PING_COUNT,
-		.interval = 1, // TODO: Make this work really good
+		.interval = PING_DEFAULT_INTERVAL,
 		.linger = MAX_WAIT,
 		.preload = 0,
 		.size = PING_DATALEN,
@@ -86,7 +86,7 @@ t_ping_args parse_args(int argc, char *argv[]) {
 					printf("invalid interval value (`%s' near `%s')\n", optarg, endptr);
 				args.options |= OPT_INTERVAL;
 				args.interval = tmp_interval * PING_PRECISION;
-				if (!is_root && tmp_interval < PING_MIN_USER_INTERVAL)
+				if (!is_root && args.interval < PING_MIN_USER_INTERVAL)
 					error(EXIT_FAILURE, 0, "option value too small: %s", optarg);
 				break;
 			case 'w':

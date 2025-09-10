@@ -28,23 +28,28 @@ t_ping_info parse_ping_info(char *target, char *program_name) {
 	return info;
 }
 
-
-
-// void send_ping(int ping_sockfd, t_sockaddr_in *ping_addr, char *ping_dom, char *ping_ip, int verbose) {
 void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 	int ttl_val = 64, msg_count = 0, flag = 1, msg_received_count = 0;
-	size_t i;
+	size_t i, ping_count = 0;
 	socklen_t addr_len;
 	char rbuffer[128];
 	t_ping_pkt pckt;
 	t_sockaddr_in r_addr;
-	t_timespec time_start, time_end, tfs, tfe;
+	t_timespec time_start, time_end, tfs, tfe, timeout_end;
 	long double rtt_msec = 0, total_msec = 0;
 	t_timeval tv_out;
-	tv_out.tv_sec = RECV_TIMEOUT;
+
+	// Use linger timeout if specified, otherwise default
+	tv_out.tv_sec = (args->linger > 0) ? args->linger : RECV_TIMEOUT;
 	tv_out.tv_usec = 0;
 
 	clock_gettime(CLOCK_MONOTONIC, &tfs);
+
+	// Set timeout end time if timeout is specified
+	if (args->timeout > 0) {
+		timeout_end = tfs;
+		timeout_end.tv_sec += args->timeout;
+	}
 
 	// Set socket options at IP to TTL and value to 64
 	if (setsockopt(ping_sockfd, SOL_IP, IP_TTL, &ttl_val, sizeof(ttl_val)) != 0) {
@@ -53,6 +58,18 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 			perror("ft_ping: setsockopt TTL");
 		}
 		return;
+	}
+
+	// Set TOS (Type of Service) if specified
+	if (args->tos >= 0) {
+		if (setsockopt(ping_sockfd, SOL_IP, IP_TOS, &args->tos, sizeof(args->tos)) != 0) {
+			if (args->options & OPT_VERBOSE) {
+				printf("ft_ping: warning: setsockopt IP_TOS failed\n");
+				perror("ft_ping: setsockopt IP_TOS");
+			}
+		} else if (args->options & OPT_VERBOSE) {
+			printf("ft_ping: TOS set to %d\n", args->tos);
+		}
 	}
 
 	// Setting timeout of receive setting
@@ -64,41 +81,61 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 	}
 
 	if (args->options & OPT_VERBOSE) {
-		printf("ft_ping: socket configured, TTL=%d, timeout=%ds\n", ttl_val, RECV_TIMEOUT);
+		printf("ft_ping: socket configured, TTL=%d, timeout=%ds", ttl_val, (int)tv_out.tv_sec);
+		if (args->tos >= 0) {
+			printf(", TOS=%d", args->tos);
+		}
+		printf("\n");
 	}
 
 	// Send ICMP packet in an infinite loop
-	while (ping_loop) {
-		// Flag to check if packet was sent or not
-		flag = 1;
+	while (ping_loop && (args->count == 0 || ping_count < args->count)) {
+		// Check timeout if specified
+		if (args->timeout > 0) {
+			t_timespec current_time;
+			clock_gettime(CLOCK_MONOTONIC, &current_time);
+			if (current_time.tv_sec >= timeout_end.tv_sec) {
+				if (args->options & OPT_VERBOSE) {
+					printf("ft_ping: timeout reached after %d seconds\n", args->timeout);
+				}
+				break;
+			}
+		}
 
-		// Fill the packet
+		// Flag to check if packet was sent or not
+		flag = true;
+		ping_count++;
+
+		// Fill the packet - use specified size
 		bzero(&pckt, sizeof(pckt));
 		pckt.hdr.type = ICMP_ECHO;
 		pckt.hdr.un.echo.id = getpid();
 
-		for (i = 0; i < sizeof(pckt.msg) - 1; i++)
+		// Fill data payload up to specified size (limited by packet structure)
+		size_t data_size = (args->size < sizeof(pckt.msg)) ? args->size : sizeof(pckt.msg) - 1;
+		for (i = 0; i < data_size; i++)
 			pckt.msg[i] = (char)(i + '0');
 
-		pckt.msg[i] = 0;
+		pckt.msg[data_size] = 0;
 		pckt.hdr.un.echo.sequence = msg_count++;
-		pckt.hdr.checksum = 0; // Reset checksum before calculation
+		pckt.hdr.checksum = 0;
 		pckt.hdr.checksum = checksum(&pckt, sizeof(pckt));
 
 		if (args->options & OPT_VERBOSE && msg_count == 1) {
-			printf("ft_ping: sending ICMP packets with ID=%d\n", getpid());
+			printf("ft_ping: sending ICMP packets with ID=%d, data size=%zu bytes\n", getpid(), args->size);
 		}
 
-		usleep(PING_SLEEP_RATE);
+		usleep(PING_PRECISION * args->interval);
 
 		// Send packet
 		clock_gettime(CLOCK_MONOTONIC, &time_start);
-		if (sendto(ping_sockfd, &pckt, sizeof(pckt), 0, (t_sockaddr *)&info->addr_con, sizeof(info->addr_con)) <= 0) {
+		size_t packet_size = sizeof(t_icmphdr) + ((args->size < sizeof(pckt.msg)) ? args->size : sizeof(pckt.msg));
+		if (sendto(ping_sockfd, &pckt, packet_size, 0, (t_sockaddr *)&info->addr_con, sizeof(info->addr_con)) <= 0) {
 			printf("ft_ping: sendto: Packet sending failed\n");
 			if (args->options & OPT_VERBOSE) {
 				perror("ft_ping: sendto");
 			}
-			flag = 0;
+			flag = false;
 		}
 
 		// Receive packet

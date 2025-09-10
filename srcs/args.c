@@ -63,8 +63,6 @@ t_ping_args parse_args(int argc, char *argv[]) {
 	if (getuid() == 0)
 		is_root = true;
 
-	argv[0] = basename(argv[0]);
-
 	while (1) {
 		opt_index = 0;
 

@@ -20,6 +20,7 @@ void show_args(t_ping_args args) {
 
 int main(int argc, char *argv[]) {
 	t_ping_args args;
+	argv[0] = basename(argv[0]);
 	args = parse_args(argc, argv);
 	show_args(args);
 

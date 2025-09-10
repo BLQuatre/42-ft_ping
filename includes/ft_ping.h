@@ -14,13 +14,26 @@
 # include <netinet/ip_icmp.h>
 # include <sys/types.h>
 # include <libgen.h>
+# include <time.h>
+# include <netdb.h>
+# include <stdarg.h>
+# include <arpa/inet.h>
+# include <signal.h>
+# include <errno.h>
 
-# define PING_DATALEN (64 - ICMP_MINLEN)
+# define PING_PKT_S 64
+# define PING_DATALEN (PING_PKT_S - ICMP_MINLEN)
 # define PING_MAX_DATALEN (65535 - sizeof (struct icmp6_hdr))
-# define DEFAULT_PING_COUNT 0
-# define MAX_WAIT 10
 # define PING_PRECISION 1000
 # define PING_MIN_USER_INTERVAL (2000000 / PING_PRECISION)
+
+# define PORT_NO 0
+# define PING_SLEEP_RATE 1000000
+# define RECV_TIMEOUT 1
+# define DEFAULT_PING_COUNT 0
+# define MAX_WAIT 10
+
+extern int ping_loop;
 
 enum {
 	OPT_VERBOSE		= 0x001,
@@ -32,6 +45,20 @@ enum {
 enum {
 	ARG_USAGE = 256
 };
+
+typedef struct sockaddr t_sockaddr;
+typedef struct sockaddr_in t_sockaddr_in;
+typedef struct ip t_ip;
+typedef struct icmphdr t_icmphdr;
+typedef struct hostent t_hostent;
+typedef struct in_addr t_in_addr;
+typedef struct timespec t_timespec;
+typedef struct timeval t_timeval;
+
+typedef struct s_ping_pkt {
+	t_icmphdr hdr;
+	char msg[64 - sizeof(t_icmphdr)];
+} t_ping_pkt;
 
 typedef struct s_ping_args {
 	char **adresses;
@@ -45,8 +72,23 @@ typedef struct s_ping_args {
 	unsigned long preload;
 } t_ping_args;
 
+typedef struct s_ping_info {
+	char *ip_addr;
+	char *hostname;
+	t_sockaddr_in addr_con;
+} t_ping_info;
+
 // MAIN
 t_ping_args parse_args(int argc, char *argv[]);
+
+// PING
+t_ping_info parse_ping_info(char *target, char *program_name);
+void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args);
+
+// PING UTILS
+unsigned short checksum(void *b, int len);
+bool is_valid_ipv4(const char *ip);
+char *resolve_hostname_to_ip(char *addr_host, t_sockaddr_in *addr_con);
 
 // HELP
 void show_missing(char *program_name);

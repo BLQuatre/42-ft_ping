@@ -53,4 +53,7 @@ void show_missing(char *program_name);
 void show_help(char *program_name);
 void show_usage(char *program_name);
 
+// ERRORS
+void show_error(int code, char *msg, ...);
+
 #endif

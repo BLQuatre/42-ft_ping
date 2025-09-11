@@ -10,6 +10,7 @@
 # include <stdbool.h>
 # include <error.h>
 # include <limits.h>
+# include <math.h>
 # include <netinet/icmp6.h>
 # include <netinet/ip_icmp.h>
 # include <sys/types.h>

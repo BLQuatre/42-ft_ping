@@ -125,8 +125,6 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 			printf("ft_ping: sending ICMP packets with ID=%d, data size=%zu bytes\n", getpid(), args->size);
 		}
 
-		usleep(PING_PRECISION * args->interval);
-
 		clock_gettime(CLOCK_MONOTONIC, &time_start);
 		size_t packet_size = sizeof(t_icmphdr) + ((args->size < sizeof(pckt.msg)) ? args->size : sizeof(pckt.msg));
 		if (sendto(ping_sockfd, &pckt, packet_size, 0, (t_sockaddr *)&info->addr_con, sizeof(info->addr_con)) <= 0) {
@@ -189,6 +187,9 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 					}
 				}
 			}
+		}
+		if (args->count == 0 || ping_count < args->count) {
+			usleep(PING_PRECISION * args->interval);
 		}
 	}
 	clock_gettime(CLOCK_MONOTONIC, &tfe);

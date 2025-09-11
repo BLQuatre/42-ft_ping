@@ -201,7 +201,7 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 	}
 	clock_gettime(CLOCK_MONOTONIC, &tfe);
 
-	printf("\n--- %s ping statistics ---\n", info->hostname);
+	printf("--- %s ping statistics ---\n", info->hostname);
 	printf("%d packets transmitted, %d packets received, %.0f%% packet loss\n",
 		msg_count, msg_received_count, ((msg_count - msg_received_count) / (double)msg_count) * 100.0);
 

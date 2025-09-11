@@ -57,7 +57,11 @@ int main(int argc, char *argv[]) {
 	info = parse_ping_info(args.adresses[0], argv[0]);
 	show_info(info);
 
-	printf("PING %s (%s): %ld data bytes\n", info.hostname, info.ip_addr, args.size);
+	printf("PING %s (%s): %ld data bytes", info.hostname, info.ip_addr, args.size);
+	if (args.options & OPT_VERBOSE) {
+		printf(", id 0x%x = %d", getpid(), getpid());
+	}
+	printf("\n");
 
 	signal(SIGINT, intHandler);
 

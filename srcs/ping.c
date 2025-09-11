@@ -39,7 +39,6 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 	long double rtt_msec = 0;
 	t_timeval tv_out;
 
-	// RTT statistics tracking
 	long double rtt_min = 0, rtt_max = 0, rtt_sum = 0, rtt_sum_sq = 0;
 	int rtt_count = 0;
 
@@ -94,7 +93,6 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 
 	// Send ICMP packet in an infinite loop
 	while (ping_loop && (args->count == 0 || ping_count < args->count)) {
-		// Check timeout if specified
 		if (args->timeout > 0) {
 			t_timespec current_time;
 			clock_gettime(CLOCK_MONOTONIC, &current_time);
@@ -106,11 +104,9 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 			}
 		}
 
-		// Flag to check if packet was sent or not
 		flag = true;
 		ping_count++;
 
-		// Fill the packet - use specified size
 		bzero(&pckt, sizeof(pckt));
 		pckt.hdr.type = ICMP_ECHO;
 		pckt.hdr.un.echo.id = getpid();
@@ -131,7 +127,6 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 
 		usleep(PING_PRECISION * args->interval);
 
-		// Send packet
 		clock_gettime(CLOCK_MONOTONIC, &time_start);
 		size_t packet_size = sizeof(t_icmphdr) + ((args->size < sizeof(pckt.msg)) ? args->size : sizeof(pckt.msg));
 		if (sendto(ping_sockfd, &pckt, packet_size, 0, (t_sockaddr *)&info->addr_con, sizeof(info->addr_con)) <= 0) {
@@ -142,7 +137,6 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 			flag = false;
 		}
 
-		// Receive packet
 		addr_len = sizeof(r_addr);
 		ssize_t bytes_received = recvfrom(ping_sockfd, rbuffer, sizeof(rbuffer), 0, (t_sockaddr *)&r_addr, &addr_len);
 
@@ -166,7 +160,6 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 
 			// If packet was not sent, don't receive
 			if (flag) {
-				// Skip IP header to get to ICMP header
 				t_ip *ip_hdr = (t_ip *)rbuffer;
 				t_icmphdr *recv_hdr = (t_icmphdr *)(rbuffer + (ip_hdr->ip_hl * 4));
 
@@ -184,7 +177,6 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 						(int)bytes_received, info->hostname, recv_hdr->un.echo.sequence, ip_hdr->ip_ttl, rtt_msec);
 					msg_received_count++;
 
-					// Update RTT statistics
 					rtt_count++;
 					rtt_sum += rtt_msec;
 					rtt_sum_sq += rtt_msec * rtt_msec;
@@ -205,13 +197,12 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 	printf("%d packets transmitted, %d packets received, %.0f%% packet loss\n",
 		msg_count, msg_received_count, ((msg_count - msg_received_count) / (double)msg_count) * 100.0);
 
-	// Display RTT statistics if we have received packets
 	if (rtt_count > 0) {
 		long double rtt_avg = rtt_sum / rtt_count;
 		long double rtt_stddev = 0;
 
 		if (rtt_count > 1) {
-			// Calculate standard deviation using the formula: sqrt((sum_sq - (sum^2)/n) / (n-1))
+			// Formula: sqrt((sum_sq - (sum^2)/n) / (n-1))
 			long double variance = (rtt_sum_sq - (rtt_sum * rtt_sum) / rtt_count) / (rtt_count - 1);
 			rtt_stddev = sqrtl(variance);
 		}

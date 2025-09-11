@@ -8,7 +8,7 @@ INC_FLAGS	= -I$(INC_DIR)
 SRCS_DIR	= srcs
 OBJS_DIR	= objs
 SRCS = $(wildcard $(SRCS_DIR)/*.c)
-OBJS = $(patsubst $(SRCS_DIR)/%.c, $(OBJS_DIR)/%.o, $(SRCS))
+OBJS = $(patsubst $(SRCS_DIR)/%.c,$(OBJS_DIR)/%.o,$(SRCS))
 
 GREEN		= \033[0;32m
 CYAN		= \033[0;36m
@@ -34,7 +34,7 @@ $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.c | $(OBJS_DIR)
 
 $(NAME): $(OBJS)
 	@echo "$(INFO) Compiling $(NAME)...$(GRAY)"
-	$(CC) $(WIN_SIZE) $(CFLAGS) $(INC_FLAGS) $(OBJS) -o $@
+	$(CC) $(CFLAGS) $(INC_FLAGS) $(OBJS) -o $@
 	@echo "$(SUCCESS) $(NAME) compiled."
 
 clean:

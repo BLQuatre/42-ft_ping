@@ -36,8 +36,12 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 	t_ping_pkt pckt;
 	t_sockaddr_in r_addr;
 	t_timespec time_start, time_end, tfs, tfe, timeout_end;
-	long double rtt_msec = 0, total_msec = 0;
+	long double rtt_msec = 0;
 	t_timeval tv_out;
+
+	// RTT statistics tracking
+	long double rtt_min = 0, rtt_max = 0, rtt_sum = 0, rtt_sum_sq = 0;
+	int rtt_count = 0;
 
 	// Use linger timeout if specified, otherwise default
 	tv_out.tv_sec = (args->linger > 0) ? args->linger : RECV_TIMEOUT;
@@ -179,20 +183,40 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 					printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3Lf ms\n",
 						(int)bytes_received, info->hostname, recv_hdr->un.echo.sequence, ip_hdr->ip_ttl, rtt_msec);
 					msg_received_count++;
+
+					// Update RTT statistics
+					rtt_count++;
+					rtt_sum += rtt_msec;
+					rtt_sum_sq += rtt_msec * rtt_msec;
+
+					if (rtt_count == 1) {
+						rtt_min = rtt_max = rtt_msec;
+					} else {
+						if (rtt_msec < rtt_min) rtt_min = rtt_msec;
+						if (rtt_msec > rtt_max) rtt_max = rtt_msec;
+					}
 				}
 			}
 		}
 	}
 	clock_gettime(CLOCK_MONOTONIC, &tfe);
-	double timeElapsed = ((double)(tfe.tv_nsec - tfs.tv_nsec)) / 1000000.0;
-	total_msec = (tfe.tv_sec - tfs.tv_sec) * 1000.0 + timeElapsed;
 
 	printf("\n--- %s ping statistics ---\n", info->hostname);
-	printf("%d packets transmitted, %d received, %.0f%% packet loss, time %.0Lfms\n",
-		msg_count, msg_received_count, ((msg_count - msg_received_count) / (double)msg_count) * 100.0, total_msec);
+	printf("%d packets transmitted, %d packets received, %.0f%% packet loss\n",
+		msg_count, msg_received_count, ((msg_count - msg_received_count) / (double)msg_count) * 100.0);
 
-	if (args->options & OPT_VERBOSE) {
-		printf("ft_ping: statistics - transmitted=%d, received=%d, loss=%.1f%%, time=%.0Lfms\n",
-			msg_count, msg_received_count, ((msg_count - msg_received_count) / (double)msg_count) * 100.0, total_msec);
+	// Display RTT statistics if we have received packets
+	if (rtt_count > 0) {
+		long double rtt_avg = rtt_sum / rtt_count;
+		long double rtt_stddev = 0;
+
+		if (rtt_count > 1) {
+			// Calculate standard deviation using the formula: sqrt((sum_sq - (sum^2)/n) / (n-1))
+			long double variance = (rtt_sum_sq - (rtt_sum * rtt_sum) / rtt_count) / (rtt_count - 1);
+			rtt_stddev = sqrtl(variance);
+		}
+
+		printf("round-trip min/avg/max/stddev = %.3Lf/%.3Lf/%.3Lf/%.3Lf ms\n",
+			rtt_min, rtt_avg, rtt_max, rtt_stddev);
 	}
 }

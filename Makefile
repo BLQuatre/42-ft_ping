@@ -1,6 +1,7 @@
 NAME		= ft_ping
 CC			= cc
 CFLAGS		= -Wall -Wextra -Werror
+LFLAGS		= -lm
 
 INC_DIR		= includes
 INC_FLAGS	= -I$(INC_DIR)
@@ -34,7 +35,7 @@ $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.c | $(OBJS_DIR)
 
 $(NAME): $(OBJS)
 	@echo "$(INFO) Compiling $(NAME)...$(GRAY)"
-	$(CC) $(CFLAGS) $(INC_FLAGS) $(OBJS) -o $@
+	$(CC) $(CFLAGS) $(INC_FLAGS) $(OBJS) ${LFLAGS} -o $@
 	@echo "$(SUCCESS) $(NAME) compiled."
 
 clean:

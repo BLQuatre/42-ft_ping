@@ -3,24 +3,24 @@
 
 # define _DEFAULT_SOURCE
 
-# include <stdio.h>
-# include <unistd.h>
-# include <getopt.h>
-# include <stdlib.h>
-# include <stdbool.h>
+# include <arpa/inet.h>
+# include <errno.h>
 # include <error.h>
+# include <getopt.h>
+# include <libgen.h>
 # include <limits.h>
 # include <math.h>
 # include <netinet/icmp6.h>
 # include <netinet/ip_icmp.h>
-# include <sys/types.h>
-# include <libgen.h>
-# include <time.h>
 # include <netdb.h>
-# include <stdarg.h>
-# include <arpa/inet.h>
 # include <signal.h>
-# include <errno.h>
+# include <stdarg.h>
+# include <stdbool.h>
+# include <stdio.h>
+# include <stdlib.h>
+# include <sys/types.h>
+# include <time.h>
+# include <unistd.h>
 
 # define PING_PKT_S 64
 # define PING_DATALEN (PING_PKT_S - ICMP_MINLEN)
@@ -31,7 +31,6 @@
 # define PING_MIN_USER_INTERVAL (2000000 / PING_PRECISION)
 
 # define PORT_NO 0
-# define PING_SLEEP_RATE 1000000
 # define RECV_TIMEOUT 1
 # define DEFAULT_PING_COUNT 0
 # define MAX_WAIT 10

@@ -80,17 +80,12 @@ typedef struct s_ping_info {
 	t_sockaddr_in addr_con;
 } t_ping_info;
 
-// MAIN
+// PARSING
 t_ping_args parse_args(int argc, char *argv[]);
+t_ping_info parse_ping_info(char *target, char *program_name);
 
 // PING
-t_ping_info parse_ping_info(char *target, char *program_name);
 void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args);
-
-// PING UTILS
-unsigned short checksum(void *b, int len);
-bool is_valid_ipv4(const char *ip);
-char *resolve_hostname_to_ip(char *addr_host, t_sockaddr_in *addr_con);
 
 // HELP
 void show_missing(char *program_name);

@@ -36,7 +36,7 @@ static t_ping_args default_args() {
 	return args;
 }
 
-size_t parse_number(const char *optarg, size_t max_val, bool allow_zero) {
+static size_t parse_number(const char *optarg, size_t max_val, bool allow_zero) {
 	char *p;
 	unsigned long int n;
 
@@ -143,4 +143,32 @@ t_ping_args parse_args(int argc, char *argv[]) {
 	}
 
 	return args;
+}
+
+t_ping_info parse_ping_info(char *target, char *program_name) {
+	t_ping_info info;
+	bool is_ip_input;
+
+	is_ip_input = is_valid_ipv4(target);
+
+	if (is_ip_input) {
+		info.ip_addr = malloc(strlen(target) + 1);
+		strcpy(info.ip_addr, target);
+		info.hostname = malloc(strlen(target) + 1);
+		strcpy(info.hostname, target);
+
+		info.addr_con.sin_family = AF_INET;
+		info.addr_con.sin_port = htons(PORT_NO);
+		info.addr_con.sin_addr.s_addr = inet_addr(target);
+	} else {
+		info.ip_addr = resolve_hostname_to_ip(target, &info.addr_con);
+		if (info.ip_addr == NULL) {
+			show_error(1, "%s: unknown host\n", program_name);
+		}
+
+		info.hostname = malloc(strlen(target) + 1);
+		strcpy(info.hostname, target);
+	}
+
+	return info;
 }

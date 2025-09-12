@@ -1,33 +1,5 @@
 #include "ft_ping.h"
 
-t_ping_info parse_ping_info(char *target, char *program_name) {
-	t_ping_info info;
-	bool is_ip_input;
-
-	is_ip_input = is_valid_ipv4(target);
-
-	if (is_ip_input) {
-		info.ip_addr = malloc(strlen(target) + 1);
-		strcpy(info.ip_addr, target);
-		info.hostname = malloc(strlen(target) + 1);
-		strcpy(info.hostname, target);
-
-		info.addr_con.sin_family = AF_INET;
-		info.addr_con.sin_port = htons(PORT_NO);
-		info.addr_con.sin_addr.s_addr = inet_addr(target);
-	} else {
-		info.ip_addr = resolve_hostname_to_ip(target, &info.addr_con);
-		if (info.ip_addr == NULL) {
-			show_error(1, "%s: unknown host\n", program_name);
-		}
-
-		info.hostname = malloc(strlen(target) + 1);
-		strcpy(info.hostname, target);
-	}
-
-	return info;
-}
-
 void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 	int ttl_val = 64, msg_count = 0, flag = 1, msg_received_count = 0;
 	size_t i, ping_count = 0;

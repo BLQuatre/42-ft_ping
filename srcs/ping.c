@@ -1,5 +1,20 @@
 #include "ft_ping.h"
 
+static unsigned short checksum(void *b, int len) {
+	unsigned short *buf = b;
+	unsigned int sum = 0;
+	unsigned short result;
+
+	for (sum = 0; len > 1; len -= 2)
+		sum += *buf++;
+	if (len == 1)
+		sum += *(unsigned char *)buf;
+	sum = (sum >> 16) + (sum & 0xFFFF);
+	sum += (sum >> 16);
+	result = ~sum;
+	return result;
+}
+
 void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 	int ttl_val = 64, msg_count = 0, flag = 1, msg_received_count = 0;
 	size_t i, ping_count = 0;
@@ -67,11 +82,12 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 		pckt.hdr.checksum = checksum(&pckt, sizeof(pckt));
 
 		clock_gettime(CLOCK_MONOTONIC, &time_start);
-		size_t packet_size = sizeof(t_icmphdr) + ((args->size < sizeof(pckt.msg)) ? args->size : sizeof(pckt.msg));
+		size_t packet_size = sizeof(t_icmphdr) + ((args->size > sizeof(pckt.msg)) ? args->size : sizeof(pckt.msg));
+		printf("Debug: Sent %zu bytes to %s (%zu, %zu, %zu)\n", packet_size, info->ip_addr, args->size, sizeof(t_icmphdr), sizeof(pckt.msg));
 		if (sendto(ping_sockfd, &pckt, packet_size, 0, (t_sockaddr *)&info->addr_con, sizeof(info->addr_con)) <= 0) {
 			printf("ft_ping: sendto: Packet sending failed\n");
-			flag = false;
-		}
+				flag = false;
+			}
 
 		bool got_reply = false;
 		time_t start_recv_time = time(NULL);
@@ -83,6 +99,8 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 			if (bytes_received <= 0) {
 				break;
 			}
+
+			printf("Debug: Received %zd bytes\n", bytes_received);
 
 			t_ip *ip_hdr = (t_ip *)rbuffer;
 			t_icmphdr *recv_hdr = (t_icmphdr *)(rbuffer + (ip_hdr->ip_hl * 4));
@@ -100,7 +118,7 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 
 					int icmp_payload_size = bytes_received - (ip_hdr->ip_hl * 4);
 					printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3Lf ms\n",
-						icmp_payload_size, info->hostname, recv_hdr->un.echo.sequence, ip_hdr->ip_ttl, rtt_msec);
+						icmp_payload_size, info->ip_addr, recv_hdr->un.echo.sequence, ip_hdr->ip_ttl, rtt_msec);
 					msg_received_count++;
 
 					rtt_count++;

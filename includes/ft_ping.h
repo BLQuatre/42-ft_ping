@@ -84,6 +84,11 @@ typedef struct s_ping_info {
 t_ping_args parse_args(int argc, char *argv[]);
 t_ping_info parse_ping_info(char *target, char *program_name);
 
+// PARSING_UTILS
+bool is_valid_ipv4(const char *ip);
+char *resolve_hostname_to_ip(char *addr_host, t_sockaddr_in *addr_con);
+size_t parse_number(const char *optarg, size_t max_val, bool allow_zero);
+
 // PING
 void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args);
 

@@ -2,31 +2,25 @@
 
 int ping_loop = 1;
 
-// static void show_args(t_ping_args args) {
-// 	printf("Args:\n");
-// 	for (int i = 0; args.adresses && args.adresses[i]; i++) {
-// 		printf("  address[%d]: %s\n", i, args.adresses[i]);
-// 	}
-// 	printf("  verbose: %d\n", args.options & OPT_VERBOSE);
-// 	printf("  quiet: %d\n", args.options & OPT_QUIET);
-// 	printf("  interval: %ld\n", args.interval);
-// 	printf("  count: %ld\n", args.count);
-// 	printf("  tos: %d\n", args.tos);
-// 	printf("  timeout: %d\n", args.timeout);
-// 	printf("  linger: %d\n", args.linger);
-// 	printf("  size: %ld\n", args.size);
-// 	printf("  flood: %d\n", args.options & OPT_FLOOD);
-// 	printf("  preload: %ld\n", args.preload);
-// }
+static void show_args(t_ping_args args) {
+	printf("adrs: [");
+	for (int i = 0; args.adresses && args.adresses[i]; i++) {
+		printf("%s%s", i > 0 ? ", " : "", args.adresses[i]);
+	}
+	printf("]");
 
-// static void show_info(t_ping_info info) {
-// 	printf("Info:\n");
-// 	printf("  hostname: %s\n", info.hostname);
-// 	printf("  ip_addr: %s\n", info.ip_addr);
-// 	printf("  addr_con.sin_family: %d\n", info.addr_con.sin_family);
-// 	printf("  addr_con.sin_port: %d\n", ntohs(info.addr_con.sin_port));
-// 	printf("  addr_con.sin_addr.s_addr: %u\n", ntohl(info.addr_con.sin_addr.s_addr));
-// }
+	printf(" |v: %d", args.options & OPT_VERBOSE);
+	printf(" |q: %d", args.options & OPT_QUIET);
+	printf(" |i: %ld", args.interval);
+	printf(" |c: %ld", args.count);
+	printf(" |tos: %d", args.tos);
+	printf(" |tout: %d", args.timeout);
+	printf(" |linger: %d", args.linger);
+	printf(" |s: %ld", args.size);
+	printf(" |f: %d", args.options & OPT_FLOOD);
+	printf(" |pload: %ld", args.preload);
+	printf("\n");
+}
 
 static void intHandler(int dummy) {
 	(void) dummy;
@@ -41,7 +35,7 @@ int main(int argc, char *argv[]) {
 	argv[0] = basename(argv[0]);
 
 	args = parse_args(argc, argv);
-	// show_args(args);
+	show_args(args);
 
 	sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 	if (sockfd < 0) {
@@ -55,7 +49,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	info = parse_ping_info(args.adresses[0], argv[0]);
-	// show_info(info);
 
 	printf("PING %s (%s): %ld data bytes", info.hostname, info.ip_addr, args.size);
 	if (args.options & OPT_VERBOSE) {

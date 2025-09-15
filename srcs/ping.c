@@ -163,6 +163,13 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 
 	// Send ICMP packet in an infinite loop
 	while (ping_loop && (args->count == 0 || ping_count < args->count)) {
+		ping_count++;
+
+		create_icmp_packet(packet_buffer, packet_size, msg_count);
+		msg_count++;
+
+		bool packet_sent = send_icmp_packet(ping_sockfd, packet_buffer, packet_size, info, &time_start);
+
 		if (args->timeout > 0) {
 			t_timespec current_time;
 			clock_gettime(CLOCK_MONOTONIC, &current_time);
@@ -170,13 +177,6 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 				break;
 			}
 		}
-
-		ping_count++;
-
-		create_icmp_packet(packet_buffer, packet_size, msg_count);
-		msg_count++;
-
-		bool packet_sent = send_icmp_packet(ping_sockfd, packet_buffer, packet_size, info, &time_start);
 
 		bool got_reply = false;
 		if (packet_sent) {

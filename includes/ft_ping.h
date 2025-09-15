@@ -55,7 +55,7 @@ typedef struct timeval t_timeval;
 
 typedef struct s_ping_pkt {
 	t_icmphdr hdr;
-	char msg[1];  // Variable length data, will be allocated dynamically
+	char msg[1];
 } t_ping_pkt;
 
 typedef struct s_ping_args {

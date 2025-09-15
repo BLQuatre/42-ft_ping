@@ -17,8 +17,6 @@ static void show_args(t_ping_args args) {
 	printf(" |tout: %d", args.timeout);
 	printf(" |linger: %d", args.linger);
 	printf(" |s: %ld", args.size);
-	printf(" |f: %d", args.options & OPT_FLOOD);
-	printf(" |pload: %ld", args.preload);
 	printf("\n");
 }
 

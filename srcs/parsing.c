@@ -15,10 +15,6 @@ static struct option long_options[] = {
 	{ "linger",			required_argument,	NULL,	'W' },
 	{ "size",			required_argument,	NULL,	's' },
 
-	// NOT SURE
-	{ "flood",			no_argument,		NULL,	'f' },
-	{ "preload",		required_argument,	NULL,	'l' },
-
 	// END
 	{ NULL,				0,					NULL,	0 }
 };
@@ -28,7 +24,6 @@ static t_ping_args default_args() {
 		.count = DEFAULT_PING_COUNT,
 		.interval = PING_DEFAULT_INTERVAL,
 		.linger = MAX_WAIT,
-		.preload = 0,
 		.size = PING_DATALEN,
 		.timeout = -1,
 		.tos = -1
@@ -82,14 +77,6 @@ t_ping_args parse_args(int argc, char *argv[]) {
 				break;
 			case 's':
 				args.size = parse_number(optarg, PING_MAX_DATALEN, true);
-				break;
-			case 'f':
-				args.options |= OPT_FLOOD;
-				break;
-			case 'l':
-				args.preload = strtoul (optarg, &endptr, 0);
-				if (*endptr || args.preload > INT_MAX)
-					error (EXIT_FAILURE, 0, "invalid preload value (%s)", optarg);
 				break;
 			case 'T':
 				args.tos = parse_number(optarg, 255, true);

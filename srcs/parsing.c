@@ -64,7 +64,7 @@ t_ping_args parse_args(int argc, char *argv[]) {
 				tmp_interval = strtod(optarg, &endptr);
 				if (*endptr) {
 					fprintf(stderr, "%s: invalid value (`%s' near `%s')\n", argv[0], optarg, endptr);
-					show_try(basename(argv[0]));
+					show_try(argv[0]);
 					exit(64);
 				}
 				args.interval = tmp_interval * PING_PRECISION;
@@ -86,16 +86,16 @@ t_ping_args parse_args(int argc, char *argv[]) {
 
 			case '?':
 				if (optopt == '?' || optopt == 0) {
-					show_help(basename(argv[0]));
+					show_help(argv[0]);
 					exit(0);
 				} else {
-					show_try(basename(argv[0]));
+					show_try(argv[0]);
 					exit(64);
 				}
 				break;
 
 			case ARG_USAGE:
-				show_usage(basename(argv[0]));
+				show_usage(argv[0]);
 				exit(0);
 				break;
 		}
@@ -112,8 +112,8 @@ t_ping_args parse_args(int argc, char *argv[]) {
 	args.adresses[addr_index] = NULL;
 
 	if (addr_index == 0) {
-		fprintf(stderr, "%s: missing host operand\n", basename(argv[0]));
-		show_try(basename(argv[0]));
+		fprintf(stderr, "%s: missing host operand\n", argv[0]);
+		show_try(argv[0]);
 		exit(64);
 	}
 

@@ -43,7 +43,8 @@ enum {
 };
 
 enum {
-	ARG_USAGE = 256
+	ARG_USAGE = 256,
+	ARG_ECHO = 257
 };
 
 typedef struct sockaddr t_sockaddr;

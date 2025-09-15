@@ -15,6 +15,8 @@ static struct option long_options[] = {
 	{ "linger",			required_argument,	NULL,	'W' },
 	{ "size",			required_argument,	NULL,	's' },
 
+	{ "echo",			no_argument,		NULL,	ARG_ECHO },
+
 	// END
 	{ NULL,				0,					NULL,	0 }
 };
@@ -82,6 +84,10 @@ t_ping_args parse_args(int argc, char *argv[]) {
 				break;
 			case 'T':
 				args.tos = parse_number(optarg, 255, true);
+				break;
+
+			case ARG_ECHO:
+				// Default option so do nothing
 				break;
 
 			case '?':

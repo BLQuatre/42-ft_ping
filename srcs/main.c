@@ -28,6 +28,11 @@ int main(int argc, char *argv[]) {
 	}
 
 	info = parse_ping_info(args.adresses[0], argv[0]);
+	if (info.ip_addr == NULL) {
+		free(args.adresses);
+		close(sockfd);
+		return EXIT_FAILURE;
+	}
 
 	printf("PING %s (%s): %ld data bytes", info.hostname, info.ip_addr, args.size);
 	if (args.options & OPT_VERBOSE) {

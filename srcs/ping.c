@@ -212,6 +212,10 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 	size_t data_size = (args->size > 0) ? args->size : PING_DATALEN;
 	size_t packet_size = sizeof(t_icmphdr) + data_size;
 
+	if (args->interval <= 0) {
+		error(EXIT_FAILURE, 0, "sending packet: No buffer space available");
+	}
+
 	char *packet_buffer = malloc(packet_size);
 	if (!packet_buffer) {
 		fprintf(stderr, "ft_ping: malloc: Memory allocation failed\n");

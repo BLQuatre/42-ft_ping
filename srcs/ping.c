@@ -41,7 +41,7 @@ static bool setup_socket_options(int ping_sockfd, t_ping_args *args, t_timeval *
 
 static void create_icmp_packet(char *packet_buffer, size_t packet_size, int msg_count) {
 	size_t i;
-	t_ping_pkt *pckt = (t_ping_pkt *)packet_buffer;
+	t_ping_pkt *pckt = (t_ping_pkt *) packet_buffer;
 	size_t data_size = packet_size - sizeof(t_icmphdr);
 
 	bzero(packet_buffer, packet_size);

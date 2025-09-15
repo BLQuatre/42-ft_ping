@@ -23,9 +23,6 @@ void show_help(char *program_name) {
 	printf("\n");
 	printf(" Options valid for --echo requests:\n");
 	printf("\n");
-	printf("  -f, --flood                flood ping (root only)\n");
-	printf("  -l, --preload=NUMBER       send NUMBER packets as fast as possible before\n");
-	printf("                             falling into normal mode of behavior (root only)\n");
 	printf("  -q, --quiet                quiet output\n");
 	printf("  -s, --size=NUMBER          send NUMBER data octets\n");
 	printf("\n");
@@ -34,15 +31,13 @@ void show_help(char *program_name) {
 	printf("Mandatory or optional arguments to long options are also mandatory or optional\n");
 	printf("for any corresponding short options.\n");
 	printf("\n");
-	printf("Options marked with (root only) are available only to superuser.\n");
-	printf("\n");
 	printf("Report bugs to the maintainer.\n");
 }
 
 void show_usage(char *program_name) {
-	printf("Usage: %s [-vfq?] [-c NUMBER] [-i NUMBER] [-T NUM] [-w N] [-W N] [-l NUMBER]\n", program_name);
+	printf("Usage: %s [-vq?] [-c NUMBER] [-i NUMBER] [-T NUM] [-w N] [-W N]\n", program_name);
 	printf("               [-s NUMBER] [--echo] [--count=NUMBER] [--interval=NUMBER]\n");
-	printf("               [--tos=NUM] [--verbose] [--timeout=N] [--linger=N] [--flood]\n");
-	printf("               [--preload=NUMBER] [--quiet] [--size=NUMBER] [--help] [--usage]\n");
+	printf("               [--tos=NUM] [--verbose] [--timeout=N] [--linger=N]\n");
+	printf("               [--quiet] [--size=NUMBER] [--help] [--usage]\n");
 	printf("               HOST ...\n");
 }

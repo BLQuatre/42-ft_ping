@@ -40,8 +40,7 @@ extern int ping_loop;
 enum {
 	OPT_VERBOSE		= 0x001,
 	OPT_QUIET		= 0x002,
-	OPT_FLOOD		= 0x004,
-	OPT_INTERVAL	= 0x008
+	OPT_INTERVAL	= 0x004
 };
 
 enum {
@@ -71,7 +70,6 @@ typedef struct s_ping_args {
 	int linger;
 	size_t size;
 	unsigned int options;
-	unsigned long preload;
 } t_ping_args;
 
 typedef struct s_ping_info {

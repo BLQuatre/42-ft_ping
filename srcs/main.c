@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
 		if (errno == EPERM || errno == EACCES) {
 			fprintf(stderr, "ping: Lacking privilege for icmp socket.\n");
 		} else {
-			fprintf (stderr, "ping: %s\n", strerror(errno));
+			fprintf(stderr, "ping: %s\n", strerror(errno));
 		}
 		free(args.adresses);
 		return EXIT_FAILURE;

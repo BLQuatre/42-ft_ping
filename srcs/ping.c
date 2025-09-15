@@ -1,5 +1,4 @@
 #include "ft_ping.h"
-#include <string.h>
 
 static unsigned short checksum(void *b, int len) {
 	unsigned short *buf = b;
@@ -215,7 +214,7 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 
 	char *packet_buffer = malloc(packet_size);
 	if (!packet_buffer) {
-		printf("ft_ping: malloc: Memory allocation failed\n");
+		fprintf(stderr, "ft_ping: malloc: Memory allocation failed\n");
 		return;
 	}
 
@@ -257,7 +256,7 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 			}
 		} else {
 			if (args->options == OPT_VERBOSE) {
-				printf("Failed to send ICMP packet for sequence %d\n", msg_count - 1);
+				fprintf(stderr, "Failed to send ICMP packet for sequence %d\n", msg_count - 1);
 			}
 		}
 

@@ -35,9 +35,9 @@ void show_help(char *program_name) {
 }
 
 void show_usage(char *program_name) {
-	printf("Usage: %s [-vq?] [-c NUMBER] [-i NUMBER] [-T NUM] [-w N] [-W N]\n", program_name);
-	printf("               [-s NUMBER] [--echo] [--count=NUMBER] [--interval=NUMBER]\n");
-	printf("               [--tos=NUM] [--verbose] [--timeout=N] [--linger=N]\n");
-	printf("               [--quiet] [--size=NUMBER] [--help] [--usage]\n");
+	printf("Usage: %s [-vq?] [-c NUMBER] [-i NUMBER] [-T NUM] [-w N] [-W N] [-s NUMBER] \n", program_name);
+	printf("               [--echo] [--count=NUMBER] [--interval=NUMBER] [--tos=NUM] \n");
+	printf("               [--verbose] [--timeout=N] [--linger=N] [--quiet] \n");
+	printf("               [--size=NUMBER] [--help] [--usage]\n");
 	printf("               HOST ...\n");
 }

@@ -19,17 +19,26 @@ static bool setup_socket_options(int ping_sockfd, t_ping_args *args, t_timeval *
 	int ttl_val = 64;
 
 	// Set socket options at IP to TTL and value to 64
-	setsockopt(ping_sockfd, SOL_IP, IP_TTL, &ttl_val, sizeof(ttl_val));
+	if (setsockopt(ping_sockfd, SOL_IP, IP_TTL, &ttl_val, sizeof(ttl_val)) < 0) {
+		perror("setsockopt(IP_TTL)");
+		return false;
+	}
 
 	// Set TOS (Type of Service) if specified
 	if (args->tos >= 0) {
-		setsockopt(ping_sockfd, SOL_IP, IP_TOS, &args->tos, sizeof(args->tos));
+		if (setsockopt(ping_sockfd, SOL_IP, IP_TOS, &args->tos, sizeof(args->tos)) < 0) {
+			perror("setsockopt(IP_TOS)");
+			return false;
+		}
 	}
 
 	// Setting timeout of receive setting
 	tv_linger->tv_sec = (args->linger > 0) ? args->linger : RECV_TIMEOUT;
 	tv_linger->tv_usec = 0;
-	setsockopt(ping_sockfd, SOL_SOCKET, SO_RCVTIMEO, tv_linger, sizeof(*tv_linger));
+	if (setsockopt(ping_sockfd, SOL_SOCKET, SO_RCVTIMEO, tv_linger, sizeof(*tv_linger)) < 0) {
+		perror("setsockopt(SO_RCVTIMEO)");
+		return false;
+	}
 
 	return true;
 }

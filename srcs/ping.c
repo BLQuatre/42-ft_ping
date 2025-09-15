@@ -15,18 +15,11 @@ static unsigned short checksum(void *b, int len) {
 	return result;
 }
 
-static bool setup_socket_options(int ping_sockfd, t_ping_args *args, t_timeval *tv_out) {
+static bool setup_socket_options(int ping_sockfd, t_ping_args *args, t_timeval *tv_linger) {
 	int ttl_val = 64;
 
-	// Use linger timeout if specified, otherwise default
-	tv_out->tv_sec = (args->linger > 0) ? args->linger : RECV_TIMEOUT;
-	tv_out->tv_usec = 0;
-
 	// Set socket options at IP to TTL and value to 64
-	if (setsockopt(ping_sockfd, SOL_IP, IP_TTL, &ttl_val, sizeof(ttl_val)) != 0) {
-		printf("ft_ping: setsockopt: TTL failed\n");
-		return false;
-	}
+	setsockopt(ping_sockfd, SOL_IP, IP_TTL, &ttl_val, sizeof(ttl_val));
 
 	// Set TOS (Type of Service) if specified
 	if (args->tos >= 0) {
@@ -34,7 +27,9 @@ static bool setup_socket_options(int ping_sockfd, t_ping_args *args, t_timeval *
 	}
 
 	// Setting timeout of receive setting
-	setsockopt(ping_sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)tv_out, sizeof(*tv_out));
+	tv_linger->tv_sec = (args->linger > 0) ? args->linger : RECV_TIMEOUT;
+	tv_linger->tv_usec = 0;
+	setsockopt(ping_sockfd, SOL_SOCKET, SO_RCVTIMEO, tv_linger, sizeof(*tv_linger));
 
 	return true;
 }

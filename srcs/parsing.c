@@ -67,6 +67,8 @@ t_ping_args parse_args(int argc, char *argv[]) {
 				args.interval = tmp_interval * PING_PRECISION;
 				if (!is_root && args.interval < PING_MIN_USER_INTERVAL)
 					error(EXIT_FAILURE, 0, "option value too small: %s", optarg);
+				if (args.interval <= 0)
+					error(EXIT_FAILURE, 0, "sending packet: No buffer space available");
 				break;
 			case 'w':
 				args.timeout = parse_number(optarg, INT_MAX, false);

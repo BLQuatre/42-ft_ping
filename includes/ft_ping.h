@@ -23,9 +23,11 @@
 # include <time.h>
 # include <unistd.h>
 
+# define MAX_IP_LEN 60
+# define MAX_ICMP_LEN 76
 # define PING_PKT_S 64
 # define PING_DATALEN (PING_PKT_S - ICMP_MINLEN)
-# define PING_MAX_DATALEN (USHRT_MAX - sizeof (struct icmp6_hdr))
+# define PING_MAX_DATALEN (USHRT_MAX - MAX_IP_LEN - MAX_ICMP_LEN)
 
 # define PING_DEFAULT_INTERVAL 1000
 # define PING_PRECISION 1000

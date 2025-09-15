@@ -161,8 +161,14 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 		timeout_end.tv_sec += args->timeout;
 	}
 
+	struct timeval ping_start, ping_end;
+	long elapsed_ms;
+	int interval_ms = args->interval;
+
 	// Send ICMP packet in an infinite loop
 	while (ping_loop && (args->count == 0 || ping_count < args->count)) {
+		gettimeofday(&ping_start, NULL);
+
 		ping_count++;
 
 		create_icmp_packet(packet_buffer, packet_size, msg_count);
@@ -190,8 +196,15 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 		// 	printf("Request timeout for icmp_seq %d\n", msg_count - 1);
 		// }
 
+		gettimeofday(&ping_end, NULL);
+		elapsed_ms = (ping_end.tv_sec - ping_start.tv_sec) * 1000;
+		elapsed_ms += (ping_end.tv_usec - ping_start.tv_usec) / 1000;
+
 		if (args->count == 0 || ping_count < args->count) {
-			usleep(PING_PRECISION * args->interval);
+			int remaining_time = interval_ms - elapsed_ms;
+			if (remaining_time > 0) {
+				usleep(remaining_time * 1000);
+			}
 		}
 	}
 	clock_gettime(CLOCK_MONOTONIC, &tfe);

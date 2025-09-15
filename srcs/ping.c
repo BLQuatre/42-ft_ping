@@ -1,4 +1,5 @@
 #include "ft_ping.h"
+#include <string.h>
 
 static unsigned short checksum(void *b, int len) {
 	unsigned short *buf = b;
@@ -20,14 +21,18 @@ static bool setup_socket_options(int ping_sockfd, t_ping_args *args, t_timeval *
 
 	// Set socket options at IP to TTL and value to 64
 	if (setsockopt(ping_sockfd, SOL_IP, IP_TTL, &ttl_val, sizeof(ttl_val)) < 0) {
-		perror("setsockopt(IP_TTL)");
+		if (args->options == OPT_VERBOSE) {
+			perror("setsockopt(IP_TTL)");
+		}
 		return false;
 	}
 
 	// Set TOS (Type of Service) if specified
 	if (args->tos >= 0) {
 		if (setsockopt(ping_sockfd, SOL_IP, IP_TOS, &args->tos, sizeof(args->tos)) < 0) {
-			perror("setsockopt(IP_TOS)");
+			if (args->options == OPT_VERBOSE) {
+				perror("setsockopt(IP_TOS)");
+			}
 			return false;
 		}
 	}
@@ -36,8 +41,10 @@ static bool setup_socket_options(int ping_sockfd, t_ping_args *args, t_timeval *
 	tv_linger->tv_sec = (args->linger > 0) ? args->linger : RECV_TIMEOUT;
 	tv_linger->tv_usec = 0;
 	if (setsockopt(ping_sockfd, SOL_SOCKET, SO_RCVTIMEO, tv_linger, sizeof(*tv_linger)) < 0) {
-		perror("setsockopt(SO_RCVTIMEO)");
-		return false;
+		if (args->options == OPT_VERBOSE) {
+			perror("setsockopt(SO_RCVTIMEO)");
+			return false;
+		}
 	}
 
 	return true;
@@ -60,17 +67,20 @@ static void create_icmp_packet(char *packet_buffer, size_t packet_size, int msg_
 	pckt->hdr.checksum = checksum(pckt, packet_size);
 }
 
-static bool send_icmp_packet(int ping_sockfd, char *packet_buffer, size_t packet_size, t_ping_info *info, t_timespec *time_start) {
+static bool send_icmp_packet(int ping_sockfd, char *packet_buffer, size_t packet_size, t_ping_info *info, t_timespec *time_start, bool verbose) {
 	clock_gettime(CLOCK_MONOTONIC, time_start);
 
 	if (sendto(ping_sockfd, packet_buffer, packet_size, 0, (t_sockaddr *)&info->addr_con, sizeof(info->addr_con)) <= 0) {
-		printf("ft_ping: sendto: Packet sending failed\n");
+		if (verbose) {
+			printf("sendto error: %s\n", strerror(errno));
+		}
 		return false;
 	}
+
 	return true;
 }
 
-static bool receive_ping_reply(int ping_sockfd, t_ping_info *info, t_timespec *time_start, t_timeval *tv_out, t_ping_stats *stats, bool quiet) {
+static bool receive_ping_reply(int ping_sockfd, t_ping_info *info, t_timespec *time_start, t_timeval *tv_out, t_ping_stats *stats, bool quiet, bool verbose) {
 	char rbuffer[USHRT_MAX];
 	t_sockaddr_in r_addr;
 	socklen_t addr_len;
@@ -83,6 +93,13 @@ static bool receive_ping_reply(int ping_sockfd, t_ping_info *info, t_timespec *t
 		ssize_t bytes_received = recvfrom(ping_sockfd, rbuffer, sizeof(rbuffer), 0, (t_sockaddr *)&r_addr, &addr_len);
 
 		if (bytes_received <= 0) {
+			if (verbose) {
+				if (errno == EAGAIN || errno == EWOULDBLOCK) {
+					printf("Receive timeout occurred\n");
+				} else {
+					printf("Receive error: %s\n", strerror(errno));
+				}
+			}
 			break;
 		}
 
@@ -90,6 +107,9 @@ static bool receive_ping_reply(int ping_sockfd, t_ping_info *info, t_timespec *t
 		t_icmphdr *recv_hdr = (t_icmphdr *)(rbuffer + (ip_hdr->ip_hl * 4));
 
 		if (recv_hdr->type == ICMP_ECHO) {
+			if (verbose) {
+				printf("Received ICMP echo request (ignoring)\n");
+			}
 			continue;
 		}
 
@@ -117,6 +137,47 @@ static bool receive_ping_reply(int ping_sockfd, t_ping_info *info, t_timespec *t
 					if (rtt_msec > stats->rtt_max) stats->rtt_max = rtt_msec;
 				}
 				got_reply = true;
+			} else {
+				if (verbose) {
+					printf("Received ICMP echo reply with wrong ID (expected %d, got %d)\n", getpid(), recv_hdr->un.echo.id);
+				}
+			}
+		} else {
+			if (verbose) {
+				printf("Received ICMP packet: type=%d, code=%d\n", recv_hdr->type, recv_hdr->code);
+				if (recv_hdr->type == ICMP_DEST_UNREACH) {
+					printf("Destination unreachable: ");
+					switch (recv_hdr->code) {
+						case ICMP_NET_UNREACH:
+							printf("Network unreachable\n");
+							break;
+						case ICMP_HOST_UNREACH:
+							printf("Host unreachable\n");
+							break;
+						case ICMP_PROT_UNREACH:
+							printf("Protocol unreachable\n");
+							break;
+						case ICMP_PORT_UNREACH:
+							printf("Port unreachable\n");
+							break;
+						default:
+							printf("Code %d\n", recv_hdr->code);
+							break;
+					}
+				} else if (recv_hdr->type == ICMP_TIME_EXCEEDED) {
+					printf("Time exceeded: ");
+					switch (recv_hdr->code) {
+						case ICMP_EXC_TTL:
+							printf("TTL exceeded in transit\n");
+							break;
+						case ICMP_EXC_FRAGTIME:
+							printf("Fragment reassembly time exceeded\n");
+							break;
+						default:
+							printf("Code %d\n", recv_hdr->code);
+							break;
+					}
+				}
 			}
 		}
 	}
@@ -178,7 +239,7 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 		msg_count++;
 
 		t_timespec time_start;
-		bool packet_sent = send_icmp_packet(ping_sockfd, packet_buffer, packet_size, info, &time_start);
+		bool packet_sent = send_icmp_packet(ping_sockfd, packet_buffer, packet_size, info, &time_start, args->options == OPT_VERBOSE);
 
 		gettimeofday(&ping_start, NULL);
 
@@ -191,8 +252,12 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 		}
 
 		if (packet_sent) {
-			if (receive_ping_reply(ping_sockfd, info, &time_start, &tv_out, &stats, args->options & OPT_QUIET)) {
+			if (receive_ping_reply(ping_sockfd, info, &time_start, &tv_out, &stats, args->options & OPT_QUIET, args->options & OPT_VERBOSE)) {
 				msg_received_count++;
+			}
+		} else {
+			if (args->options == OPT_VERBOSE) {
+				printf("Failed to send ICMP packet for sequence %d\n", msg_count - 1);
 			}
 		}
 

@@ -70,7 +70,7 @@ static bool send_icmp_packet(int ping_sockfd, char *packet_buffer, size_t packet
 	return true;
 }
 
-static bool receive_ping_reply(int ping_sockfd, t_ping_info *info, t_timespec *time_start, t_timeval *tv_out, t_ping_stats *stats) {
+static bool receive_ping_reply(int ping_sockfd, t_ping_info *info, t_timespec *time_start, t_timeval *tv_out, t_ping_stats *stats, bool quiet) {
 	char rbuffer[USHRT_MAX];
 	t_sockaddr_in r_addr;
 	socklen_t addr_len;
@@ -101,8 +101,10 @@ static bool receive_ping_reply(int ping_sockfd, t_ping_info *info, t_timespec *t
 				long double rtt_msec = (time_end.tv_sec - time_start->tv_sec) * 1000.0 + timeElapsed;
 
 				int icmp_payload_size = bytes_received - (ip_hdr->ip_hl * 4);
-				printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3Lf ms\n",
-					icmp_payload_size, info->ip_addr, recv_hdr->un.echo.sequence, ip_hdr->ip_ttl, rtt_msec);
+				if (!quiet) {
+					printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3Lf ms\n",
+						icmp_payload_size, info->ip_addr, recv_hdr->un.echo.sequence, ip_hdr->ip_ttl, rtt_msec);
+				}
 
 				stats->rtt_count++;
 				stats->rtt_sum += rtt_msec;
@@ -189,7 +191,7 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 		}
 
 		if (packet_sent) {
-			if (receive_ping_reply(ping_sockfd, info, &time_start, &tv_out, &stats)) {
+			if (receive_ping_reply(ping_sockfd, info, &time_start, &tv_out, &stats, args->options & OPT_QUIET)) {
 				msg_received_count++;
 			}
 		}

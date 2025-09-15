@@ -134,7 +134,8 @@ t_ping_info parse_ping_info(char *target, char *program_name) {
 	} else {
 		info.ip_addr = resolve_hostname_to_ip(target, &info.addr_con);
 		if (info.ip_addr == NULL) {
-			show_error(1, "%s: unknown host\n", program_name);
+			fprintf(stderr, "%s: unknown host\n", program_name);
+			return info;
 		}
 
 		info.hostname = malloc(strlen(target) + 1);

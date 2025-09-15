@@ -268,7 +268,7 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 
 		ping_count++;
 		if (args->count == 0 || ping_count < args->count) {
-			int remaining_time = args->interval - elapsed_ms;
+			size_t remaining_time = args->interval - elapsed_ms;
 			if (remaining_time > 0) {
 				usleep(remaining_time * 1000);
 			}

@@ -62,8 +62,11 @@ t_ping_args parse_args(int argc, char *argv[]) {
 				break;
 			case 'i':
 				tmp_interval = strtod(optarg, &endptr);
-				if (*endptr)
-					printf("invalid interval value (`%s' near `%s')\n", optarg, endptr);
+				if (*endptr) {
+					fprintf(stderr, "%s: invalid value (`%s' near `%s')\n", argv[0], optarg, endptr);
+					show_try(basename(argv[0]));
+					exit(64);
+				}
 				args.interval = tmp_interval * PING_PRECISION;
 				if (!is_root && args.interval < PING_MIN_USER_INTERVAL)
 					error(EXIT_FAILURE, 0, "option value too small: %s", optarg);
@@ -83,16 +86,16 @@ t_ping_args parse_args(int argc, char *argv[]) {
 
 			case '?':
 				if (optopt == '?' || optopt == 0) {
-					show_help(argv[0]);
+					show_help(basename(argv[0]));
 					exit(0);
 				} else {
-					printf("Try '%s --help' or '%s --usage' for more information.\n", argv[0], argv[0]);
+					show_try(basename(argv[0]));
 					exit(64);
 				}
 				break;
 
 			case ARG_USAGE:
-				show_usage(argv[0]);
+				show_usage(basename(argv[0]));
 				exit(0);
 				break;
 		}
@@ -109,7 +112,8 @@ t_ping_args parse_args(int argc, char *argv[]) {
 	args.adresses[addr_index] = NULL;
 
 	if (addr_index == 0) {
-		show_missing(argv[0]);
+		fprintf(stderr, "%s: missing host operand\n", basename(argv[0]));
+		show_try(basename(argv[0]));
 		exit(64);
 	}
 

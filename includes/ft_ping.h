@@ -36,8 +36,7 @@ extern int ping_loop;
 
 enum {
 	OPT_VERBOSE		= 0x001,
-	OPT_QUIET		= 0x002,
-	OPT_INTERVAL	= 0x004
+	OPT_QUIET		= 0x002
 };
 
 enum {

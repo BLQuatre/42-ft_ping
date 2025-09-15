@@ -64,7 +64,6 @@ t_ping_args parse_args(int argc, char *argv[]) {
 				tmp_interval = strtod(optarg, &endptr);
 				if (*endptr)
 					printf("invalid interval value (`%s' near `%s')\n", optarg, endptr);
-				args.options |= OPT_INTERVAL;
 				args.interval = tmp_interval * PING_PRECISION;
 				if (!is_root && args.interval < PING_MIN_USER_INTERVAL)
 					error(EXIT_FAILURE, 0, "option value too small: %s", optarg);

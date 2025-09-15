@@ -1,8 +1,7 @@
 #include "ft_ping.h"
 
-void show_missing(char *program_name) {
-	printf("%s: missing host operand\n", program_name);
-	printf("Try '%s --help' or '%s --usage' for more information.\n", program_name, program_name);
+void show_try(char *program_name) {
+	fprintf(stderr, "Try '%s --help' or '%s --usage' for more information.\n", program_name, program_name);
 }
 
 void show_help(char *program_name) {

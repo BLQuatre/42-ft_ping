@@ -12,8 +12,6 @@ int main(int argc, char *argv[]) {
 	int sockfd;
 	t_ping_info info;
 
-	argv[0] = basename(argv[0]);
-
 	args = parse_args(argc, argv);
 
 	sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
@@ -27,7 +25,7 @@ int main(int argc, char *argv[]) {
 		return EXIT_FAILURE;
 	}
 
-	info = parse_ping_info(args.adresses[0], argv[0]);
+	info = parse_ping_info(args.adresses[0], basename(argv[0]));
 	if (info.ip_addr == NULL) {
 		free(args.adresses);
 		close(sockfd);

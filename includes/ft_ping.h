@@ -96,7 +96,7 @@ size_t parse_number(const char *optarg, size_t max_val, bool allow_zero);
 void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args);
 
 // HELP
-void show_missing(char *program_name);
+void show_try(char *program_name);
 void show_help(char *program_name);
 void show_usage(char *program_name);
 

@@ -16,7 +16,7 @@ char *resolve_hostname_to_ip(char *addr_host, t_sockaddr_in *addr_con) {
 
 	strcpy(ip, inet_ntoa(*(t_in_addr *)host_entity->h_addr_list[0]));
 	(*addr_con).sin_family = host_entity->h_addrtype;
-	(*addr_con).sin_port = htons(PORT_NO);
+	(*addr_con).sin_port = htons(0);
 	(*addr_con).sin_addr.s_addr = *(long *)host_entity->h_addr_list[0];
 
 	return ip;

@@ -30,10 +30,7 @@
 # define PING_PRECISION 1000
 # define PING_MIN_USER_INTERVAL (2000000 / PING_PRECISION)
 
-# define PORT_NO 0
 # define RECV_TIMEOUT 1
-# define DEFAULT_PING_COUNT 0
-# define MAX_WAIT 10
 
 extern int ping_loop;
 

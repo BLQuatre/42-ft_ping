@@ -21,9 +21,9 @@ static struct option long_options[] = {
 
 static t_ping_args default_args() {
 	t_ping_args args = {
-		.count = DEFAULT_PING_COUNT,
+		.count = 0,
 		.interval = PING_DEFAULT_INTERVAL,
-		.linger = MAX_WAIT,
+		.linger = 0,
 		.size = PING_DATALEN,
 		.timeout = -1,
 		.tos = -1
@@ -130,7 +130,7 @@ t_ping_info parse_ping_info(char *target, char *program_name) {
 		strcpy(info.hostname, target);
 
 		info.addr_con.sin_family = AF_INET;
-		info.addr_con.sin_port = htons(PORT_NO);
+		info.addr_con.sin_port = htons(0);
 		info.addr_con.sin_addr.s_addr = inet_addr(target);
 	} else {
 		info.ip_addr = resolve_hostname_to_ip(target, &info.addr_con);

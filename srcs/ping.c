@@ -143,13 +143,11 @@ static void print_statistics(t_ping_info *info, int msg_count, int msg_received_
 }
 
 void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
+	t_ping_stats stats = {0, 0, 0, 0, 0};
 	int msg_count = 0, msg_received_count = 0;
 	size_t ping_count = 0;
-	t_timespec time_start, tfs, timeout_end;
-	t_timeval tv_out;
-	t_ping_stats stats = {0, 0, 0, 0, 0};
 
-	size_t data_size = (args->size > 0) ? args->size : 56;
+	size_t data_size = (args->size > 0) ? args->size : PING_DATALEN;
 	size_t packet_size = sizeof(t_icmphdr) + data_size;
 
 	char *packet_buffer = malloc(packet_size);
@@ -158,45 +156,40 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 		return;
 	}
 
+	t_timeval tv_out;
 	if (!setup_socket_options(ping_sockfd, args, &tv_out)) {
 		free(packet_buffer);
 		return;
 	}
 
-	clock_gettime(CLOCK_MONOTONIC, &tfs);
-
+	t_timespec timeout_end;
 	if (args->timeout > 0) {
-		timeout_end = tfs;
+		clock_gettime(CLOCK_MONOTONIC, &timeout_end);
 		timeout_end.tv_sec += args->timeout;
 	}
 
-	struct timeval ping_start, ping_end;
-	long elapsed_ms;
-	int interval_ms = args->interval;
-
-	// Send ICMP packet in an infinite loop
 	while (ping_loop && (args->count == 0 || ping_count < args->count)) {
-		gettimeofday(&ping_start, NULL);
+		struct timeval ping_start, ping_end;
+		long elapsed_ms;
 
-		ping_count++;
+		gettimeofday(&ping_start, NULL);
 
 		create_icmp_packet(packet_buffer, packet_size, msg_count);
 		msg_count++;
 
+		t_timespec time_start;
 		bool packet_sent = send_icmp_packet(ping_sockfd, packet_buffer, packet_size, info, &time_start);
 
 		if (args->timeout > 0) {
-			t_timespec current_time;
-			clock_gettime(CLOCK_MONOTONIC, &current_time);
-			if (current_time.tv_sec >= timeout_end.tv_sec) {
+			t_timespec now;
+			clock_gettime(CLOCK_MONOTONIC, &now);
+			if (now.tv_sec >= timeout_end.tv_sec) {
 				break;
 			}
 		}
 
-		bool got_reply = false;
 		if (packet_sent) {
-			got_reply = receive_ping_reply(ping_sockfd, info, &time_start, &tv_out, &stats);
-			if (got_reply) {
+			if (receive_ping_reply(ping_sockfd, info, &time_start, &tv_out, &stats)) {
 				msg_received_count++;
 			}
 		}
@@ -205,8 +198,9 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 		elapsed_ms = (ping_end.tv_sec - ping_start.tv_sec) * 1000;
 		elapsed_ms += (ping_end.tv_usec - ping_start.tv_usec) / 1000;
 
+		ping_count++;
 		if (args->count == 0 || ping_count < args->count) {
-			int remaining_time = interval_ms - elapsed_ms;
+			int remaining_time = args->interval - elapsed_ms;
 			if (remaining_time > 0) {
 				usleep(remaining_time * 1000);
 			}
@@ -214,6 +208,5 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 	}
 
 	print_statistics(info, msg_count, msg_received_count, &stats);
-
 	free(packet_buffer);
 }

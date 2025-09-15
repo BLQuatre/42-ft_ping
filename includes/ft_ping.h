@@ -24,7 +24,7 @@
 
 # define PING_PKT_S 64
 # define PING_DATALEN (PING_PKT_S - ICMP_MINLEN)
-# define PING_MAX_DATALEN (65535 - sizeof (struct icmp6_hdr))
+# define PING_MAX_DATALEN (USHRT_MAX - sizeof (struct icmp6_hdr))
 
 # define PING_DEFAULT_INTERVAL 1000
 # define PING_PRECISION 1000
@@ -59,7 +59,7 @@ typedef struct timeval t_timeval;
 
 typedef struct s_ping_pkt {
 	t_icmphdr hdr;
-	char msg[64 - sizeof(t_icmphdr)];
+	char msg[1];  // Variable length data, will be allocated dynamically
 } t_ping_pkt;
 
 typedef struct s_ping_args {
@@ -79,6 +79,14 @@ typedef struct s_ping_info {
 	char *hostname;
 	t_sockaddr_in addr_con;
 } t_ping_info;
+
+typedef struct s_ping_stats {
+	long double rtt_min;
+	long double rtt_max;
+	long double rtt_sum;
+	long double rtt_sum_sq;
+	int rtt_count;
+} t_ping_stats;
 
 // PARSING
 t_ping_args parse_args(int argc, char *argv[]);

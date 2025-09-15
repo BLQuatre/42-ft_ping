@@ -8,4 +8,4 @@ void show_error(int code, char *msg, ...) {
 
 	if (code > 0)
 		exit(code);
-};
+}

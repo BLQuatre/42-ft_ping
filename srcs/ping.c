@@ -145,7 +145,7 @@ static void print_statistics(t_ping_info *info, int msg_count, int msg_received_
 void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 	int msg_count = 0, msg_received_count = 0;
 	size_t ping_count = 0;
-	t_timespec time_start, tfs, tfe, timeout_end;
+	t_timespec time_start, tfs, timeout_end;
 	t_timeval tv_out;
 	t_ping_stats stats = {0, 0, 0, 0, 0};
 
@@ -201,10 +201,6 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 			}
 		}
 
-		// if (!got_reply && packet_sent) {
-		// 	printf("Request timeout for icmp_seq %d\n", msg_count - 1);
-		// }
-
 		gettimeofday(&ping_end, NULL);
 		elapsed_ms = (ping_end.tv_sec - ping_start.tv_sec) * 1000;
 		elapsed_ms += (ping_end.tv_usec - ping_start.tv_usec) / 1000;
@@ -216,7 +212,6 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 			}
 		}
 	}
-	clock_gettime(CLOCK_MONOTONIC, &tfe);
 
 	print_statistics(info, msg_count, msg_received_count, &stats);
 

@@ -42,6 +42,7 @@ int main(int argc, char *argv[]) {
 	free(args.adresses);
 	free(info.ip_addr);
 	free(info.hostname);
+	close(sockfd);
 
 	return 0;
 }

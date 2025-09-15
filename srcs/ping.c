@@ -208,9 +208,7 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 	t_ping_stats stats = {0, 0, 0, 0, 0};
 	int msg_count = 0, msg_received_count = 0;
 	size_t ping_count = 0;
-
-	size_t data_size = (args->size > 0) ? args->size : PING_DATALEN;
-	size_t packet_size = sizeof(t_icmphdr) + data_size;
+	size_t packet_size = sizeof(t_icmphdr) + args->size;
 
 	if (args->interval <= 0) {
 		error(EXIT_FAILURE, 0, "sending packet: No buffer space available");

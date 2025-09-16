@@ -3,8 +3,8 @@
 #define OPT_STR "vqc:i:w:W:s:fl:T:"
 
 static struct option long_options[] = {
-	{ "help",			no_argument,		NULL,	'?' },
 	{ "usage",			no_argument,		NULL,	ARG_USAGE },
+	{ "help",			no_argument,		NULL,	'?' },
 
 	{ "verbose",		no_argument,		NULL,	'v' },
 	{ "quiet",			no_argument,		NULL,	'q' },
@@ -91,7 +91,7 @@ t_ping_args parse_args(int argc, char *argv[]) {
 				break;
 
 			case '?':
-				if (optopt == '?' || optopt == 0) {
+				if (optopt == '?' || opt_index == 1) {
 					show_help(argv[0]);
 					exit(0);
 				} else {

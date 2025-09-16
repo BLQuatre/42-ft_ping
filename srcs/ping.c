@@ -234,7 +234,7 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 
 	while (ping_loop && (args->count == 0 || ping_count < args->count)) {
 		struct timeval ping_start, ping_end;
-		long elapsed_ms;
+		size_t elapsed_ms;
 
 		create_icmp_packet(packet_buffer, packet_size, msg_count);
 		msg_count++;
@@ -267,11 +267,8 @@ void send_ping(int ping_sockfd, t_ping_info *info, t_ping_args *args) {
 		elapsed_ms += (ping_end.tv_usec - ping_start.tv_usec) / 1000;
 
 		ping_count++;
-		if (args->count == 0 || ping_count < args->count) {
-			size_t remaining_time = args->interval - elapsed_ms;
-			if (remaining_time > 0) {
-				usleep(remaining_time * 1000);
-			}
+		if ((args->count == 0 || ping_count < args->count) && args->interval > elapsed_ms) {
+			usleep((args->interval - elapsed_ms) * 1000);
 		}
 	}
 
